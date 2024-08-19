@@ -1,8 +1,7 @@
 package dev.revere.validation;
 
-import dev.revere.validation.annotations.*;
+import dev.revere.validation.annotations.NotNull;
 import dev.revere.validation.constraints.Constraint;
-import dev.revere.validation.constraints.factories.*;
 import dev.revere.validation.exceptions.ConstraintViolationException;
 import org.reflections.Reflections;
 
@@ -41,6 +40,7 @@ public class ConstraintProcessor {
             }
         }
     }
+
     /**
      * Registers a custom constraint factory for a specific annotation type.
      *
@@ -48,8 +48,8 @@ public class ConstraintProcessor {
      * This allows adding new constraints without modifying the core library code.</p>
      *
      * @param annotationClass The annotation class associated with the constraint.
-     * @param factory The factory that creates constraints for the given annotation.
-     * @param <A> The type of the annotation.
+     * @param factory         The factory that creates constraints for the given annotation.
+     * @param <A>             The type of the annotation.
      */
     public <A extends Annotation> void registerFactory(Class<A> annotationClass, ConstraintFactory<A> factory) {
         constraintFactories.put(annotationClass, factory);
@@ -64,31 +64,84 @@ public class ConstraintProcessor {
      *
      * @param instance The object instance to validate.
      * @throws ConstraintViolationException If a field's value violates a constraint.
-     * @throws IllegalAccessException If there is an error accessing a field's value.
+     * @throws IllegalAccessException       If there is an error accessing a field's value.
      */
-    @SuppressWarnings({"unchecked"})
     public <T> void applyConstraints(T instance) throws ConstraintViolationException, IllegalAccessException {
         Field[] fields = instance.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
             Object value = field.get(instance);
+            validateFieldConstraints(field, value);
+        }
+    }
 
-            for (Annotation annotation : field.getAnnotations()) {
-                ConstraintFactory<?> factory = constraintFactories.get(annotation.annotationType());
-                if (factory != null) {
-                    Constraint<?> constraint = createConstraint(annotation);
-                    if (value != null) {
-                        if (field.getType().isInstance(value) && constraint.getType().isInstance(value)) {
-                            ((Constraint<Object>) constraint).validate(value);
-                        } else {
-                            throw new ConstraintViolationException("Field type mismatch for field " + field.getName());
-                        }
-                    } else if (annotation.annotationType().equals(NotNull.class)) {
-                        throw new ConstraintViolationException("Field " + field.getName() + " cannot be null");
-                    }
-                }
+    /**
+     * Validates constraints on a specific field of an object.
+     *
+     * <p>This method checks all annotations on the field, retrieves the associated
+     * constraint factory, creates a constraint, and then validates the field's value
+     * against this constraint.</p>
+     *
+     * @param field The field to validate.
+     * @param value The value of the field.
+     * @throws ConstraintViolationException If the field's value does not meet the constraint.
+     */
+    private void validateFieldConstraints(Field field, Object value) throws ConstraintViolationException {
+        for (Annotation annotation : field.getAnnotations()) {
+            ConstraintFactory<?> factory = constraintFactories.get(annotation.annotationType());
+            if (factory == null) {
+                continue;
+            }
+
+            Constraint<?> constraint = createConstraint(annotation);
+            validateFieldValue(field, value, constraint);
+        }
+    }
+
+    /**
+     * Validates a field's value against a given constraint.
+     *
+     * <p>This method checks if the field's value matches the constraint type and applies
+     * the constraint validation. If the value is null and the field has a {@link NotNull}
+     * annotation, a {@link ConstraintViolationException} is thrown.</p>
+     *
+     * @param field      The field to validate.
+     * @param value      The value of the field.
+     * @param constraint The constraint to apply.
+     * @throws ConstraintViolationException If the field's value does not meet the constraint or if the field is null when it shouldn't be.
+     */
+    @SuppressWarnings("unchecked")
+    private void validateFieldValue(Field field, Object value, Constraint<?> constraint) throws ConstraintViolationException {
+        if (value == null) {
+            if (isNotNullAnnotation(field.getAnnotations())) {
+                throw new ConstraintViolationException("Field " + field.getName() + " cannot be null");
+            }
+            return;
+        }
+
+        if (!field.getType().isInstance(value) || !constraint.getType().isInstance(value)) {
+            throw new ConstraintViolationException("Field type mismatch for field " + field.getName());
+        }
+
+        ((Constraint<Object>) constraint).validate(value);
+    }
+
+    /**
+     * Checks if a field has a {@link NotNull} annotation.
+     *
+     * <p>This method iterates over the field's annotations to determine if it has
+     * the {@link NotNull} annotation, which requires the field's value to be non-null.</p>
+     *
+     * @param annotations The annotations present on the field.
+     * @return True if the field has a {@link NotNull} annotation, false otherwise.
+     */
+    private boolean isNotNullAnnotation(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(NotNull.class)) {
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -98,7 +151,7 @@ public class ConstraintProcessor {
      * to create a constraint instance.</p>
      *
      * @param annotation The annotation to create a constraint for.
-     * @param <A> The type of the annotation.
+     * @param <A>        The type of the annotation.
      * @return The created constraint instance.
      * @throws IllegalArgumentException If no factory is registered for the annotation's type.
      */
