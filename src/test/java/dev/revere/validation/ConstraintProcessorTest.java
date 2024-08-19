@@ -168,6 +168,20 @@ public class ConstraintProcessorTest {
                 "User with null field should throw ConstraintViolationException.");
     }
 
+    @Test
+    public void testEmailConstraintValid() {
+        EmailUser validUser = new EmailUser("valid.email@example.com");
+        assertDoesNotThrow(() -> processor.applyConstraints(validUser),
+                "User with a valid email should not throw any exception.");
+    }
+
+    @Test
+    public void testEmailConstraintInvalid() {
+        EmailUser invalidUser = new EmailUser("invalid-email");
+        assertThrows(ConstraintViolationException.class, () -> processor.applyConstraints(invalidUser),
+                "User with an invalid email should throw ConstraintViolationException.");
+    }
+
     static class User {
         @MinLength(5)
         private final String username;
@@ -177,6 +191,15 @@ public class ConstraintProcessorTest {
         public User(String username, String password) {
             this.username = username;
             this.password = password;
+        }
+    }
+
+    static class EmailUser {
+        @Email
+        private final String email;
+
+        public EmailUser(String email) {
+            this.email = email;
         }
     }
 
