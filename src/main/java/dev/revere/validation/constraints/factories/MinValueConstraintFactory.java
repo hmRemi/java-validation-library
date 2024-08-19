@@ -15,4 +15,9 @@ public class MinValueConstraintFactory implements ConstraintFactory<MinValue> {
     public Constraint<Double> create(MinValue annotation) {
         return new MinValueConstraint(annotation.value());
     }
+
+    @Override
+    public Class<MinValue> getAnnotationType() {
+        return MinValue.class;
+    }
 }

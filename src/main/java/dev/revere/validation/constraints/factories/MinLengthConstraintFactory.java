@@ -15,4 +15,9 @@ public class MinLengthConstraintFactory implements ConstraintFactory<MinLength> 
     public Constraint<String> create(MinLength annotation) {
         return new MinLengthConstraint(annotation.value());
     }
+
+    @Override
+    public Class<MinLength> getAnnotationType() {
+        return MinLength.class;
+    }
 }

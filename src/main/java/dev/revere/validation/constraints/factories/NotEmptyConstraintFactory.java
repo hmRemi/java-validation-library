@@ -15,4 +15,9 @@ public class NotEmptyConstraintFactory implements ConstraintFactory<NotEmpty> {
     public Constraint<String> create(NotEmpty annotation) {
         return new NotEmptyConstraint();
     }
+
+    @Override
+    public Class<NotEmpty> getAnnotationType() {
+        return NotEmpty.class;
+    }
 }

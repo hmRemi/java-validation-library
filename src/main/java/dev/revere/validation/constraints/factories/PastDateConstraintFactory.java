@@ -17,4 +17,9 @@ public class PastDateConstraintFactory implements ConstraintFactory<PastDate> {
     public Constraint<LocalDate> create(PastDate annotation) {
         return new PastDateConstraint();
     }
+
+    @Override
+    public Class<PastDate> getAnnotationType() {
+        return PastDate.class;
+    }
 }

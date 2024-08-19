@@ -15,4 +15,9 @@ public class MaxValueConstraintFactory implements ConstraintFactory<MaxValue> {
     public Constraint<Double> create(MaxValue annotation) {
         return new MaxValueConstraint(annotation.value());
     }
+
+    @Override
+    public Class<MaxValue> getAnnotationType() {
+        return MaxValue.class;
+    }
 }

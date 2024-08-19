@@ -15,4 +15,9 @@ public class SizeConstraintFactory implements ConstraintFactory<Size> {
     public Constraint<String> create(Size annotation) {
         return new SizeConstraint(annotation.min(), annotation.max());
     }
+
+    @Override
+    public Class<Size> getAnnotationType() {
+        return Size.class;
+    }
 }

@@ -17,4 +17,9 @@ public class FutureDateConstraintFactory implements ConstraintFactory<FutureDate
     public Constraint<LocalDate> create(FutureDate annotation) {
         return new FutureDateConstraint();
     }
+
+    @Override
+    public Class<FutureDate> getAnnotationType() {
+        return FutureDate.class;
+    }
 }

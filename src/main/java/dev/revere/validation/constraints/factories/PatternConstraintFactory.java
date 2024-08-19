@@ -15,4 +15,9 @@ public class PatternConstraintFactory implements ConstraintFactory<Pattern> {
     public Constraint<String> create(Pattern annotation) {
         return new PatternConstraint(annotation.value());
     }
+
+    @Override
+    public Class<Pattern> getAnnotationType() {
+        return Pattern.class;
+    }
 }

@@ -15,4 +15,9 @@ public class NotNullConstraintFactory implements ConstraintFactory<NotNull> {
     public Constraint<Object> create(NotNull annotation) {
         return new NotNullConstraint();
     }
+
+    @Override
+    public Class<NotNull> getAnnotationType() {
+        return NotNull.class;
+    }
 }

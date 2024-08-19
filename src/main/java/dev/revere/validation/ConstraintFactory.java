@@ -11,4 +11,5 @@ import java.lang.annotation.Annotation;
  */
 public interface ConstraintFactory<A extends Annotation> {
     Constraint<?> create(A annotation);
+    Class<A> getAnnotationType();
 }

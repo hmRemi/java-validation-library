@@ -15,4 +15,9 @@ public class RangeConstraintFactory implements ConstraintFactory<Range> {
     public Constraint<Object> create(Range annotation) {
         return new RangeConstraint(annotation.min(), annotation.max());
     }
+
+    @Override
+    public Class<Range> getAnnotationType() {
+        return Range.class;
+    }
 }

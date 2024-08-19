@@ -4,11 +4,13 @@ import dev.revere.validation.annotations.*;
 import dev.revere.validation.constraints.Constraint;
 import dev.revere.validation.constraints.factories.*;
 import dev.revere.validation.exceptions.ConstraintViolationException;
+import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Remi
@@ -20,19 +22,25 @@ public class ConstraintProcessor {
     private final Map<Class<? extends Annotation>, ConstraintFactory<?>> constraintFactories = new HashMap<>();
 
     public ConstraintProcessor() {
-        constraintFactories.put(FutureDate.class, new FutureDateConstraintFactory());
-        constraintFactories.put(MinLength.class, new MinLengthConstraintFactory());
-        constraintFactories.put(MaxLength.class, new MaxLengthConstraintFactory());
-        constraintFactories.put(MaxValue.class, new MaxValueConstraintFactory());
-        constraintFactories.put(MinValue.class, new MinValueConstraintFactory());
-        constraintFactories.put(NotEmpty.class, new NotEmptyConstraintFactory());
-        constraintFactories.put(PastDate.class, new PastDateConstraintFactory());
-        constraintFactories.put(Pattern.class, new PatternConstraintFactory());
-        constraintFactories.put(NotNull.class, new NotNullConstraintFactory());
-        constraintFactories.put(Range.class, new RangeConstraintFactory());
-        constraintFactories.put(Size.class, new SizeConstraintFactory());
+        registerDefaultFactories();
     }
 
+    @SuppressWarnings("rawtypes")
+    private void registerDefaultFactories() {
+        Reflections reflections = new Reflections("dev.revere.validation.constraints.factories");
+        Set<Class<? extends ConstraintFactory>> factoryClasses = reflections.getSubTypesOf(ConstraintFactory.class);
+        for (Class<? extends ConstraintFactory> factoryClass : factoryClasses) {
+            try {
+                ConstraintFactory<?> factory = factoryClass.getDeclaredConstructor().newInstance();
+                Class<? extends Annotation> annotationType = factory.getAnnotationType();
+                if (annotationType != null) {
+                    constraintFactories.put(annotationType, factory);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to instantiate constraint factory: " + factoryClass.getName(), e);
+            }
+        }
+    }
     /**
      * Registers a custom constraint factory for a specific annotation type.
      *

@@ -1,4 +1,4 @@
-package dev.revere.validation.user;
+package dev.revere.validation;
 
 
 import dev.revere.validation.ValidationEngine;

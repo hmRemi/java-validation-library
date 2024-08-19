@@ -15,4 +15,9 @@ public class MaxLengthConstraintFactory implements ConstraintFactory<MaxLength> 
     public Constraint<String> create(MaxLength annotation) {
         return new MaxLengthConstraint(annotation.value());
     }
+
+    @Override
+    public Class<MaxLength> getAnnotationType() {
+        return MaxLength.class;
+    }
 }
