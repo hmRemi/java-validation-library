@@ -33,6 +33,31 @@ public class ConstraintProcessor {
         constraintFactories.put(Size.class, new SizeConstraintFactory());
     }
 
+    /**
+     * Registers a custom constraint factory for a specific annotation type.
+     *
+     * <p>Users can extend the library by registering their own constraint factories.
+     * This allows adding new constraints without modifying the core library code.</p>
+     *
+     * @param annotationClass The annotation class associated with the constraint.
+     * @param factory The factory that creates constraints for the given annotation.
+     * @param <A> The type of the annotation.
+     */
+    public <A extends Annotation> void registerFactory(Class<A> annotationClass, ConstraintFactory<A> factory) {
+        constraintFactories.put(annotationClass, factory);
+    }
+
+    /**
+     * Applies constraints to the fields of the given object instance.
+     *
+     * <p>This method iterates over all fields of the object, checks for annotations,
+     * and applies the appropriate constraints. If a field's value does not meet the
+     * constraint criteria, a {@link ConstraintViolationException} is thrown.</p>
+     *
+     * @param instance The object instance to validate.
+     * @throws ConstraintViolationException If a field's value violates a constraint.
+     * @throws IllegalAccessException If there is an error accessing a field's value.
+     */
     @SuppressWarnings({"unchecked"})
     public <T> void applyConstraints(T instance) throws ConstraintViolationException, IllegalAccessException {
         Field[] fields = instance.getClass().getDeclaredFields();
@@ -58,6 +83,17 @@ public class ConstraintProcessor {
         }
     }
 
+    /**
+     * Creates a constraint instance based on the provided annotation.
+     *
+     * <p>This method uses the appropriate constraint factory registered for the annotation's type
+     * to create a constraint instance.</p>
+     *
+     * @param annotation The annotation to create a constraint for.
+     * @param <A> The type of the annotation.
+     * @return The created constraint instance.
+     * @throws IllegalArgumentException If no factory is registered for the annotation's type.
+     */
     @SuppressWarnings("unchecked")
     public <A extends Annotation> Constraint<?> createConstraint(A annotation) {
         ConstraintFactory<A> factory = (ConstraintFactory<A>) constraintFactories.get(annotation.annotationType());
